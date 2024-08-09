@@ -1,0 +1,24 @@
+[package]
+name = "sentoani"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+ffmpeg-next = { version = "7.0.1" }
+smol = { version = "2.0.0" }
+anyhow = { version = "1.0" }
+futures = { version = "0.3.28" }
+cpal = "0.15.2"
+ringbuf = "0.3.3"
+bytemuck = "1.13.1"
+derive_more = "0.99.5"
+slint = "1.7.1"
+subparse = "0.7.0"
+glow = "0.14.0"
+instant = { version = "0.1", features = ["now"] }
+libmpv = "2.0.1"
+rand = "0.8.5"
+
+[build-dependencies]
+slint-build = "1.7.1"
