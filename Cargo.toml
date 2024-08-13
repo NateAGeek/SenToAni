@@ -17,7 +17,6 @@ slint = "1.7.1"
 subparse = "0.7.0"
 glow = "0.14.0"
 instant = { version = "0.1", features = ["now"] }
-libmpv = "2.0.1"
 rand = "0.8.5"
 
 [build-dependencies]

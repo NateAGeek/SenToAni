@@ -10,9 +10,9 @@ uniform sampler2D vTexture;
 void main()
 {
     // Read the YUV values (no need to divide since values are already in 0.0-1.0 range for 8-bit YUV420P)
-    float y = texture(yTexture, TexCoord).r * 64;
-    float u = texture(uTexture, TexCoord).r * 64 - 0.5;
-    float v = texture(vTexture, TexCoord).r * 64 - 0.5;
+    float y = texture(yTexture, TexCoord).r;
+    float u = texture(uTexture, TexCoord).r - 0.5;
+    float v = texture(vTexture, TexCoord).r - 0.5;
 
     // YUV to RGB conversion
     float r = y + 1.402 * v;

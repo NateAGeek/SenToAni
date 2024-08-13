@@ -1,5 +1,6 @@
 use std::sync::{mpsc};
 use glow::HasContext;
+use slint::SharedString;
 
 slint::include_modules!();
 
@@ -9,7 +10,7 @@ mod gl_utils;
 fn main() {
     
     // let file = String::from("./example/videos/Horimiya_01.mkv"); // YUV420P10LE
-    let file = String::from("./example/videos/sample_960x400_ocean_with_audio.mkv"); // YUV420P
+    let file = String::from("./example/videos/sample_subs.mkv"); // YUV420P
     // let file = String::from("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"); // YUV420P
 
     let ictx = ffmpeg_next::format::input(&file).unwrap();
@@ -27,7 +28,13 @@ fn main() {
 
     let app = App::new().unwrap();
     let app_weak = app.as_weak();
+
+    
+
     let (frame_sender, frame_receiver) = mpsc::channel::<ffmpeg_next::util::frame::Video>();
+    let (subtitle_sender, subtitle_receiver) = mpsc::channel::<ffmpeg_next::Packet>();
+
+    
 
     let mut video_underlay = None;
 
@@ -55,6 +62,9 @@ fn main() {
                             underlay.render();
                             app.window().request_redraw();
                         }
+                        if let (Some(app), Some(subtitle)) = (app_weak.upgrade(), subtitle_receiver.try_recv().ok()) {
+                            app.set_subtitles_text(SharedString::from(String::from_utf8(subtitle.data().unwrap().to_vec()).unwrap()));
+                        }
                     }
                     slint::RenderingState::AfterRendering => {}
                     slint::RenderingState::RenderingTeardown => {
@@ -77,8 +87,13 @@ fn main() {
     let mut player = player::Player::start(
         file.into(),
         move |new_frame| {
-                // let pixel_buffer = video_frame_to_pixel_buffer(&rgb_frame);
-                let _ = frame_sender.send(new_frame.clone());  // Send the Vec<u8> directly
+            let _ = frame_sender.send(new_frame.clone());
+        },
+        move |subtitle| {
+            if subtitle.data().unwrap().len() == 0 {
+                return;
+            }
+            let _ = subtitle_sender.send(subtitle.clone());
         },
         {
             let app_weak = app.as_weak();
@@ -93,6 +108,9 @@ fn main() {
     app.on_toggle_pause_play(move || {
         player.toggle_pause_playing();
     });
+
+    
+    
 
     app.run().unwrap();
 }

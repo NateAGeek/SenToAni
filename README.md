@@ -15,10 +15,11 @@ SenToAni is a language-learning application designed to help users learn new lan
 - [x] **Get a video playing in Slint using OpenGL**
   - Integrate OpenGL with Slint to render videos smoothly.
   - Decode videos using FFmpeg and display them within the Slint UI.
+  - TODO: Better support multiple formats, maybe break off into new crate for video playback?
 
-- [ ] **Display subtitles using Slint**
+- [x] **Display subtitles using Slint**
   - Parse subtitle files (e.g., SRT, ASS) and render them in sync with the video.
-  - Ensure subtitles are customizable in terms of font, size, and color.
+  - TOOD: Ensure subtitles are customizable in terms of font, size, and color.
 
 - [ ] **Incorporate an LLM to interact with the video**
   - Implement a feature where the LLM can pause the video at key moments to ask questions or provide explanations.

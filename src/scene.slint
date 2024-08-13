@@ -5,6 +5,7 @@ import { VerticalBox, Palette } from "std-widgets.slint";
 
 export component App inherits Window {
     in property <bool> playing;
+    in property <string> subtitles-text;
 
     pure callback toggle-pause-play();
 
@@ -35,6 +36,16 @@ export component App inherits Window {
             }
         }
     ]
+
+    Text {
+        x: root.width/2 - self.width/2;
+        y: root.height - self.height - 40px;
+        text: subtitles-text;
+        color: white;
+        stroke-width: 4px;
+        stroke: black;
+        font-size: 64px;
+    }
 
     area := TouchArea {
         width: 50%;

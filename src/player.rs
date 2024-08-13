@@ -7,6 +7,7 @@ use futures::{future::OptionFuture, FutureExt};
 
 mod audio;
 mod video;
+mod subtitles;
 
 #[derive(Clone, Copy)]
 pub enum ControlCommand {
@@ -25,6 +26,7 @@ impl Player {
     pub fn start(
         path: PathBuf,
         video_frame_callback: impl FnMut(&ffmpeg_next::util::frame::Video) + Send + 'static,
+        subtitles_frame_callback: impl FnMut(&ffmpeg_next::Packet) + Send + 'static,
         playing_changed_callback: impl Fn(bool) + 'static,
     ) -> Result<Self, anyhow::Error> {
         let (control_sender, control_receiver) = smol::channel::unbounded();
@@ -49,6 +51,14 @@ impl Player {
                     let audio_playback_thread =
                         audio::AudioPlaybackThread::start(&audio_stream).unwrap();
 
+                    let subtitles_stream = input_context.streams().best(ffmpeg_next::media::Type::Subtitle).unwrap();
+                    let subtitles_stream_index = subtitles_stream.index();
+                    let subtitles_playback_thread = subtitles::SubtitlesPlaybackThread::start(
+                        &subtitles_stream, 
+                        Box::new(subtitles_frame_callback)
+                    ).unwrap();
+                    
+
                     let mut playing = true;
 
                     // This is sub-optimal, as reading the packets from ffmpeg might be blocking
@@ -61,6 +71,8 @@ impl Player {
                                 audio_playback_thread.receive_packet(packet).await;
                             } else if stream.index() == video_stream_index {
                                 video_playback_thread.receive_packet(packet).await;
+                            } else if stream.index() == subtitles_stream_index {
+                                subtitles_playback_thread.receive_packet(packet).await;
                             }
                         }
                     }
@@ -84,6 +96,7 @@ impl Player {
                                     Ok(command) => {
                                         video_playback_thread.send_control_message(command).await;
                                         audio_playback_thread.send_control_message(command).await;
+                                        subtitles_playback_thread.send_control_message(command).await;
                                         match command {
                                             ControlCommand::Play => {
                                                 // Continue in the loop, polling the packet forwarder future to forward
